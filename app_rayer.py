@@ -129,102 +129,92 @@ elif page == "Q1-DB Query":
     if not db_connected:
         st.error("Database connection not available. Please check your connection settings.")
     else:
+        # Get min/max votes with better error handling
+        min_votes = 0
+        max_votes = 1000
+        
         try:
-            # Query to get the minimum and maximum votes from the database
-            vote_query = """
-                SELECT 
-                    MIN(votes) as min_votes, 
-                    MAX(votes) as max_votes 
-                FROM restaurant 
-                WHERE votes IS NOT NULL
-            """
+            vote_query = "SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM business_location WHERE votes IS NOT NULL"
             vote_stats = pd.read_sql(vote_query, connection)
-            min_votes = int(vote_stats['min_votes'][0])
-            max_votes = int(vote_stats['max_votes'][0])
+            
+            if not vote_stats.empty and vote_stats['min_votes'][0] is not None:
+                min_votes = int(vote_stats['min_votes'][0])
+                max_votes = int(vote_stats['max_votes'][0])
+        except Exception as e:
+            st.warning(f"Using default vote range. Database message: {e}")
 
-            # Create layout with columns
-            col1, col2 = st.columns([1, 2])
+        # Create layout with columns
+        col1, col2 = st.columns([1, 2])
 
-            with col1:
-                st.markdown("### Filter Options")
+        with col1:
+            st.markdown("### Filter Options")
 
-                # Text input for restaurant name pattern
-                name_pattern = st.text_input(
-                    "Pattern of Name:",
-                    value="",
-                    help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
-                    placeholder="e.g., Pizza"
-                )
+            name_pattern = st.text_input(
+                "Pattern of Name:",
+                value="",
+                help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
+                placeholder="e.g., Pizza"
+            )
 
-                # Slider for vote range
-                vote_range = st.slider(
-                    "Range of votes to search for:",
-                    min_value=min_votes,
-                    max_value=max_votes,
-                    value=(min_votes, max_votes),
-                    help="Drag the handles to filter restaurants by vote count"
-                )
+            vote_range = st.slider(
+                "Range of votes to search for:",
+                min_value=min_votes,
+                max_value=max_votes,
+                value=(min_votes, max_votes),
+                help="Drag the handles to filter restaurants by vote count"
+            )
 
-                # Search button
-                search_button = st.button(
-                    "🔍 Get results", 
-                    type="primary",
-                    use_container_width=True
-                )
+            search_button = st.button(
+                "🔍 Get results", 
+                type="primary",
+                use_container_width=True
+            )
 
-            with col2:
-                st.markdown("### Search Results")
+        with col2:
+            st.markdown("### Search Results")
 
-                # Query and display results when button is clicked
-                if search_button:
-                    
-                    # Build the SQL query based on user inputs
-                    if name_pattern:  # If user entered a name pattern
+            if search_button:
+                try:
+                    # Build the SQL query
+                    if name_pattern:
                         query = f"""
                             SELECT name, votes, city
-                            FROM restaurant
+                            FROM business_location
                             WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
                                 AND name LIKE '%{name_pattern}%'
                             ORDER BY votes DESC
                         """
-                    else:  # If no name pattern, just filter by votes
+                    else:
                         query = f"""
                             SELECT name, votes, city
-                            FROM restaurant
+                            FROM business_location
                             WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
                             ORDER BY votes DESC
                         """
                     
-                    # Execute the query
-                    try:
-                        df = pd.read_sql(query, connection)
+                    # Execute query
+                    df = pd.read_sql(query, connection)
+                    
+                    if not df.empty:
+                        st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
                         
-                        # Check if we found any results
-                        if not df.empty:
-                            st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
-                            
-                            # Display results in a nice formatted table
-                            st.dataframe(
-                                df,
-                                use_container_width=True,
-                                height=400,
-                                hide_index=True,
-                                column_config={
-                                    "name": st.column_config.TextColumn("Restaurant Name", width="large"),
-                                    "votes": st.column_config.NumberColumn("Votes", format="%d"),
-                                    "city": st.column_config.TextColumn("City", width="medium"),
-                                }
-                            )
-                        else:
-                            st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
-                            
-                    except Error as e:
-                        st.error(f"❌ Query error: {e}")
+                        st.dataframe(
+                            df,
+                            use_container_width=True,
+                            height=400,
+                            hide_index=True,
+                            column_config={
+                                "name": st.column_config.TextColumn("Restaurant Name", width="large"),
+                                "votes": st.column_config.NumberColumn("Votes", format="%d"),
+                                "city": st.column_config.TextColumn("City", width="medium"),
+                            }
+                        )
+                    else:
+                        st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
                         
-        except Error as e:
-            st.error(f"❌ Database error: {e}")
-            st.info("Make sure your database connection is working and the 'restaurant' table exists with a 'votes' column.")
-
+                except Exception as e:
+                    st.error(f"❌ Query error: {e}")
+                    st.info("Try adjusting your search criteria or check the database structure.")
 # ============================================
 # TAB 3: Q2-MAPS
 # ============================================
@@ -247,14 +237,12 @@ elif page == "Q2-Maps":
 
         if display_map:
             
-           if display_map:
-            
             with st.spinner("Loading restaurant locations..."):
                 
                 # Query: Get all restaurants with valid coordinates
                 location_query = """
                     SELECT name, latitude, longitude
-                    FROM restaurant
+                    FROM business_location
                     WHERE latitude IS NOT NULL 
                         AND longitude IS NOT NULL
                 """
