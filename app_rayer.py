@@ -191,7 +191,30 @@ elif page == "Q1-DB Query":
                         
                         # Check if we found any results
                         if not df.empty:
-                            st.s
+                            st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
+                            
+                            # Display results in a nice formatted table
+                            st.dataframe(
+                                df,
+                                use_container_width=True,
+                                height=400,
+                                hide_index=True,
+                                column_config={
+                                    "name": st.column_config.TextColumn("Restaurant Name", width="large"),
+                                    "votes": st.column_config.NumberColumn("Votes", format="%d"),
+                                    "city": st.column_config.TextColumn("City", width="medium"),
+                                }
+                            )
+                        else:
+                            st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
+                            
+                    except Error as e:
+                        st.error(f"❌ Query error: {e}")
+                        
+        except Error as e:
+            st.error(f"❌ Database error: {e}")
+            st.info("Make sure your database connection is working and the 'restaurant' table exists with a 'votes' column.")
+
 # ============================================
 # TAB 3: Q2-MAPS
 # ============================================
@@ -205,108 +228,28 @@ elif page == "Q2-Maps":
         # Center the button using columns
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            # ===== STUDENT TODO: STEP 1 - Create Map Button =====
-            # TODO: Create a button labeled "🗺️ Display map!"
-            # Requirements:
-            # - Use type="primary"
-            # - Use use_container_width=True
-            # - Add caption: "Map of restaurants in London. Click on teardrop to check names."
-            #
-            # EXAMPLE:
-            # display_map = st.button("🗺️ Display map!", type="primary", use_container_width=True)
-            # st.caption("Your caption here")
+            display_map = st.button(
+                "🗺️ Display map!", 
+                type="primary", 
+                use_container_width=True
+            )
+            st.caption("Map of restaurants in London. Click on teardrop to check names.")
 
-            display_map = False  # TODO: Replace with actual button
-            st.caption("TODO: Add the required caption here")
-
-        if display_map:  # This runs when button is clicked
-
-            # ===== STUDENT TODO: STEP 2 - Query Location Data =====
-            # TODO: Get restaurant locations from database
-            #
-            # REQUIREMENTS:
-            # - You need: restaurant names and their coordinates
-            # - Only get restaurants that have valid coordinates
-            # - Think about what "valid" means for latitude/longitude
-            #
-            # SQL CONCEPTS TO USE:
-            # - SELECT: Choose the columns you need for mapping
-            # - WHERE: Filter your data
-            # - IS NOT NULL: Check if a value exists
-            # - AND: Combine multiple conditions
-            #
-            # THINK ABOUT:
-            # - What columns do you need for placing markers on a map?
-            # - Why is it important to filter NULL coordinates?
-            # - What happens if you try to plot a NULL location?
-            #
-            # PANDAS HINT:
-            # - Store your query as a multi-line string using triple quotes
-            # - Execute with pd.read_sql()
-
-            # TODO: Execute query and get locations_df
-
-            # ===== STUDENT TODO: STEP 3 - Create Folium Map =====
-            # TODO: Initialize a Folium map centered on London
-            #
-            # DOCUMENTATION: https://python-visualization.github.io/folium/
-            #
-            # London coordinates: latitude=51.5074, longitude=-0.1278
-            #
-            # REQUIRED CUSTOMIZATION: Use custom tiles (not default)
-            # Options:
-            # - 'CartoDB Positron' (light/clean)
-            # - 'CartoDB Dark_Matter' (dark theme)
-            # - 'Stamen Terrain' (topographic)
-            # - 'Stamen Toner' (high contrast)
-            #
-            # EXAMPLE:
-            # london_map = folium.Map(
-            #     location=[51.5074, -0.1278],
-            #     zoom_start=11,
-            #     tiles='CartoDB Positron'  # Choose your tile style
-            # )
-
-            # ===== STUDENT TODO: STEP 4 - Add Markers =====
-            # TODO: Loop through locations_df and add a marker for each restaurant
-            #
-            # REQUIREMENTS:
-            # - Each marker should show restaurant name in popup
-            # - Use blue markers
-            # - Add tooltip for hover effect
-            #
-            # EXAMPLE CODE:
-            # for idx, row in locations_df.iterrows():
-            #     folium.Marker(
-            #         location=[row['latitude'], row['longitude']],
-            #         popup=folium.Popup(row['name'], max_width=200),
-            #         tooltip=row['name'],  # Shows on hover
-            #         icon=folium.Icon(color='blue', icon='cutlery', prefix='fa')
-            #     ).add_to(london_map)
-
-            # ===== STUDENT TODO: STEP 5 - Display Map =====
-            # TODO: Use st_folium to display the map
-            #
-            # DOCUMENTATION: https://github.com/randyzwitch/streamlit-folium
-            #
-            # EXAMPLE:
-            # st_folium(
-            #     london_map,
-            #     width=None,  # Full width
-            #     height=600,
-            #     use_container_width=True
-            # )
-            #
-            # BONUS: Display count of mapped restaurants
-            # st.success(f"Successfully mapped {len(locations_df)} restaurants")
-
-            st.info("TODO: Map will appear here")
-
-            # TEST YOUR MAP:
-            # 1. Check that all restaurants with valid coordinates appear
-            # 2. Click on markers to see restaurant names
-            # 3. Verify custom tile style is applied (not default)
-            # 4. Test hover tooltips
+        if display_map:
+            
+            with st.spinner("Loading restaurant locations..."):
+                
+                # Query: Get all restaurants with valid coordinates
+                location_query = """
+                    SELECT name, latitude, longitude
+                    FROM restaurant
+                    WHERE latitude IS NOT NULL 
+                        AND longitude IS NOT NULL
+                """
+                
+                try:
+                    # Execute query
+                    locations_df = pd.read_sql(location_query, connection)
 
 # ============================================
 # FOOTER (OPTIONAL - You can modify this)
