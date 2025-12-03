@@ -71,13 +71,10 @@ if page == "HW Summary":
         st.subheader("🎯 Approach and Implementation")
 
         st.write("""
-        I connected to the MySQL database using the mysql.connector library with credentials provided 
-        for DigitalOcean. I used pandas read_sql function to execute queries and automatically convert 
-        results into DataFrames, which made data manipulation much easier. The most challenging part 
-        was understanding SQL pattern matching with LIKE and properly handling NULL values in coordinates. 
-        I tested my SQL queries first in a database client before implementing them in Streamlit to ensure 
-        they returned correct results. I chose Folium for mapping because it integrates well with Streamlit 
-        and provides interactive maps with customizable tile layers.
+        Not knowing any python, I leaned heavily on external resources such as Claude and Google for this portion of the assignment. To the best of my understanding, I connected to the MySQL database using the mysql.connector library with credentials provided for DigitalOcean. I used pandas, a python library used for data analysis and manipulation, and the read_sql function to execute queries that automatically convert 
+        results into DataFrames (tables), which made data manipulation easier. The most challenging part 
+        was deciphering the Python code to understand what SQL code was needed and fix errors. I also learned how to use debug functions in python to find and fix errors in my code. 
+         Folium is a specialized python library for interactive maps. This was an exciting new discovery for me. 
         """)
 
     with col2:
