@@ -292,7 +292,7 @@ elif page == "Q2-Maps":
                         location=[row['latitude'], row['longitude']],
                         popup=folium.Popup(row['name'], max_width=200),
                         tooltip=row['name'],
-                        icon=folium.Icon(color='red', icon='cutlery', prefix='fa')
+                        icon=folium.Icon(color='blue', icon='cutlery', prefix='fa')
                     ).add_to(london_map)
                 
                 # Display the map (returned_objects=[] prevents rerun on interaction)
