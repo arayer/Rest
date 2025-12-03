@@ -61,50 +61,45 @@ if page == "HW Summary":
     st.markdown("# 📝 Homework Summary")
     st.markdown("---")
 
-    # TODO: Replace [YOUR NAME] with your actual name
     st.header("This HW was submitted by **Ally Rayer** of ITOM6265")
 
-    # Using columns for better layout (KEEP THIS STRUCTURE)
+    # Using columns for better layout
     col1, col2 = st.columns([1, 1])
 
     with col1:
         st.subheader("🎯 Approach and Implementation")
 
-        # TODO: Write 3-4 sentences about your approach
-        # HINTS:
-        # - How did you connect to the database?
-        # - What libraries did you use and why?
-        # - What challenges did you face?
-        # - How did you test your queries?
-        st.write("Using MySQL.Connector, I established a connection to the MySQL database and used the pandas programming library to pull data into DataFrames. I tested SQL Queries to ensure they worked before adding them to my streamlit workflow. I then used Folium for the maps because it works well with Streamlit to create interactive visualizations. "
-        TODO: Replace this with your approach description.
-
-        Example topics to cover:
-        - I used pandas read_sql to simplify database queries...
-        - The most challenging part was...
-        - I tested my SQL queries by...
-        - I chose Folium for mapping because...
+        st.write("""
+        I connected to the MySQL database using the mysql.connector library with credentials provided 
+        for DigitalOcean. I used pandas read_sql function to execute queries and automatically convert 
+        results into DataFrames, which made data manipulation much easier. The most challenging part 
+        was understanding SQL pattern matching with LIKE and properly handling NULL values in coordinates. 
+        I tested my SQL queries first in a database client before implementing them in Streamlit to ensure 
+        they returned correct results. I chose Folium for mapping because it integrates well with Streamlit 
+        and provides interactive maps with customizable tile layers.
         """)
 
     with col2:
         st.subheader("🎨 Customizations Made")
 
-        # TODO: Describe your customizations (REQUIRED for 10% of grade)
-        # You must customize at least 3 things:
-        # 1. Layout (columns, containers, etc.)
-        # 2. Map tiles (not default OpenStreetMap)
-        # 3. Data display (colors, formatting, etc.)
         st.write("""
-        TODO: Replace this with your customizations.
-
-        Required customizations (10% of grade):
-        1. **Layout:** [Describe your layout choices]
-        2. **Map Tiles:** [Which tiles did you choose and why]
-        3. **Data Display:** [How did you format the results]
-        4. **Other:** [Any additional customizations]
+        I made several customizations to enhance the user experience:
+        
+        1. Layout: Used Streamlit's column system to create a two-column layout in the query tab, 
+           placing filters on the left and results on the right for better visual organization.
+        
+        2. Map Tiles: Changed from the default OpenStreetMap to CartoDB Positron tiles, which 
+           provides a cleaner, lighter aesthetic that makes restaurant markers more visible.
+        
+        3. Data Display: Configured the results table with custom column headers, number formatting 
+           for votes, and increased height for better readability. Added success/warning messages with 
+           result counts.
+        
+        4. Other: Added blue cutlery icons for map markers, hover tooltips showing restaurant names, 
+           and captions explaining map functionality to users.
         """)
 
-    # Technologies section (You can keep this or modify it)
+    # Technologies section
     st.markdown("### 🛠️ Technologies Used")
     col1, col2, col3 = st.columns(3)
     with col1:
