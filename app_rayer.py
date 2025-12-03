@@ -76,7 +76,7 @@ if page == "HW Summary":
         # - What libraries did you use and why?
         # - What challenges did you face?
         # - How did you test your queries?
-        st.write("""
+        st.write("Using MySQL.Connector, I established a connection to the MySQL database and used the pandas programming library to pull data into DataFrames. I tested SQL Queries to ensure they worked before adding them to my streamlit workflow. I then used Folium for the maps because it works well with Streamlit to create interactive visualizations. "
         TODO: Replace this with your approach description.
 
         Example topics to cover:
@@ -144,8 +144,17 @@ elif page == "Q1-DB Query":
         # - Access values with: df['column_name'][0]
         #
         # For now, using placeholder values (REPLACE THESE):
-        min_votes = 0  # TODO: Replace with actual min from database
-        max_votes = 1000  # TODO: Replace with actual max from database
+        # Query to get the minimum and maximum votes from the database
+            vote_query = """
+                SELECT 
+                    MIN(votes) as min_votes, 
+                    MAX(votes) as max_votes 
+                FROM restaurant 
+                WHERE votes IS NOT NULL
+            """
+        vote_stats = pd.read_sql(vote_query, connection)
+        min_votes = int(vote_stats['min_votes'][0])
+        max_votes = int(vote_stats['max_votes'][0])
 
         # TEST: Display the values to verify they're correct
         st.write(f"DEBUG: Min votes = {min_votes}, Max votes = {max_votes}")  # Remove this after testing
@@ -175,7 +184,12 @@ elif page == "Q1-DB Query":
             #     placeholder="e.g., Pizza"
             # )
 
-            name_pattern = ""  # TODO: Replace with actual text_input widget
+            name_pattern = "name_pattern = st.text_input(
+    "Pattern of Name:",
+    value="",
+    help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
+    placeholder="e.g., Pizza"
+)"  # TODO: Replace with actual text_input widget
 
             # TODO: Create a slider for vote range
             # DOCUMENTATION: https://docs.streamlit.io/library/api-reference/widgets/st.slider
