@@ -234,65 +234,86 @@ elif page == "Q2-Maps":
     if not db_connected:
         st.error("Database connection not available. Please check your connection settings.")
     else:
+        # Initialize session state for map
+        if 'show_map' not in st.session_state:
+            st.session_state.show_map = False
+        
         # Center the button using columns
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            display_map = st.button(
+            # Button to toggle map display
+            if st.button(
                 "🗺️ Display map!", 
                 type="primary", 
                 use_container_width=True
-            )
+            ):
+                st.session_state.show_map = True
+            
             st.caption("Map of restaurants in London. Click on teardrop to check names.")
 
-        if display_map:
+        # Display map if button was clicked
+        if st.session_state.show_map:
             
-            with st.spinner("Loading restaurant locations..."):
-                
-                # Query: Get all restaurants with valid coordinates
-                location_query = """
-                    SELECT name, latitude, longitude
-                    FROM business_location
-                    WHERE latitude IS NOT NULL 
-                        AND longitude IS NOT NULL
-                """
-                
-                try:
-                    # Execute query
-                    locations_df = pd.read_sql(location_query, connection)
+            # Query and create map only once, store in session state
+            if 'map_data' not in st.session_state:
+                with st.spinner("Loading restaurant locations..."):
                     
-                    # Check if we got results
-                    if locations_df.empty:
-                        st.warning("No restaurant locations found in the database.")
-                    else:
-                        # Create the map centered on London
-                        london_map = folium.Map(
-                            location=[51.5074, -0.1278],
-                            zoom_start=11,
-                            tiles='CartoDB Positron'
-                        )
+                    # Query: Get all restaurants with valid coordinates
+                    location_query = """
+                        SELECT name, latitude, longitude
+                        FROM business_location
+                        WHERE latitude IS NOT NULL 
+                            AND longitude IS NOT NULL
+                    """
+                    
+                    try:
+                        # Execute query
+                        locations_df = pd.read_sql(location_query, connection)
                         
-                        # Add a marker for each restaurant
-                        for idx, row in locations_df.iterrows():
-                            folium.Marker(
-                                location=[row['latitude'], row['longitude']],
-                                popup=folium.Popup(row['name'], max_width=200),
-                                tooltip=row['name'],
-                                icon=folium.Icon(color='blue', icon='cutlery', prefix='fa')
-                            ).add_to(london_map)
-                        
-                        # Display the map
-                        st_folium(
-                            london_map,
-                            width=None,
-                            height=600,
-                            use_container_width=True
-                        )
-                        
-                        # Show success message with count
-                        st.success(f"✅ Successfully mapped {len(locations_df)} restaurants")
-                        
-                except Error as e:
-                    st.error(f"❌ Database error: {e}")
+                        # Check if we got results
+                        if locations_df.empty:
+                            st.warning("No restaurant locations found in the database.")
+                            st.session_state.show_map = False
+                        else:
+                            # Store data in session state
+                            st.session_state.map_data = locations_df
+                            
+                    except Error as e:
+                        st.error(f"❌ Database error: {e}")
+                        st.session_state.show_map = False
+            
+            # If we have map data, display it
+            if 'map_data' in st.session_state:
+                locations_df = st.session_state.map_data
+                
+                # Create the map centered on London
+                london_map = folium.Map(
+                    location=[51.5074, -0.1278],
+                    zoom_start=11,
+                    tiles='CartoDB Positron'
+                )
+                
+                # Add a marker for each restaurant
+                for idx, row in locations_df.iterrows():
+                    folium.Marker(
+                        location=[row['latitude'], row['longitude']],
+                        popup=folium.Popup(row['name'], max_width=200),
+                        tooltip=row['name'],
+                        icon=folium.Icon(color='blue', icon='cutlery', prefix='fa')
+                    ).add_to(london_map)
+                
+                # Display the map (returned_objects=[] prevents rerun on interaction)
+                st_folium(
+                    london_map,
+                    width=None,
+                    height=600,
+                    use_container_width=True,
+                    returned_objects=[]
+                )
+                
+                # Show success message with count
+                st.success(f"✅ Successfully mapped {len(locations_df)} restaurants")
+                
 # ============================================
 # FOOTER (OPTIONAL - You can modify this)
 # ============================================
