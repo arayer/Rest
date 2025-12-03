@@ -155,7 +155,7 @@ elif page == "Q1-DB Query":
             # Slider for vote range
             vote_range = st.slider(
                 "Range of votes to search for:",
-                min_value=min_votes,
+                min_value=0,
                 max_value=max_votes,
                 value=(min_votes, max_votes),
                 help="Drag the handles to filter restaurants by vote count"
