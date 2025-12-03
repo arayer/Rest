@@ -119,156 +119,79 @@ elif page == "Q1-DB Query":
     if not db_connected:
         st.error("Database connection not available. Please check your connection settings.")
     else:
-        # Query to get the minimum and maximum votes from the database
-        vote_query = """
-            SELECT 
-                MIN(votes) as min_votes, 
-                MAX(votes) as max_votes 
-            FROM restaurant 
-            WHERE votes IS NOT NULL
-        """
-        vote_stats = pd.read_sql(vote_query, connection)
-        min_votes = int(vote_stats['min_votes'][0])
-        max_votes = int(vote_stats['max_votes'][0])
+        try:
+            # Query to get the minimum and maximum votes from the database
+            vote_query = """
+                SELECT 
+                    MIN(votes) as min_votes, 
+                    MAX(votes) as max_votes 
+                FROM restaurant 
+                WHERE votes IS NOT NULL
+            """
+            vote_stats = pd.read_sql(vote_query, connection)
+            min_votes = int(vote_stats['min_votes'][0])
+            max_votes = int(vote_stats['max_votes'][0])
 
-        # Create layout with columns
-        col1, col2 = st.columns([1, 2])
+            # Create layout with columns
+            col1, col2 = st.columns([1, 2])
 
-        with col1:
-            st.markdown("### Filter Options")
+            with col1:
+                st.markdown("### Filter Options")
 
-            # Text input for restaurant name pattern
-            name_pattern = st.text_input(
-                "Pattern of Name:",
-                value="",
-                help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
-                placeholder="e.g., Pizza"
-            )
+                # Text input for restaurant name pattern
+                name_pattern = st.text_input(
+                    "Pattern of Name:",
+                    value="",
+                    help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
+                    placeholder="e.g., Pizza"
+                )
 
-            # Slider for vote range
-            vote_range = st.slider(
-                "Range of votes to search for:",
-                min_value=min_votes,
-                max_value=max_votes,
-                value=(min_votes, max_votes),
-                help="Drag the handles to filter restaurants by vote count"
-            )
+                # Slider for vote range
+                vote_range = st.slider(
+                    "Range of votes to search for:",
+                    min_value=min_votes,
+                    max_value=max_votes,
+                    value=(min_votes, max_votes),
+                    help="Drag the handles to filter restaurants by vote count"
+                )
 
-            # Search button
-            search_button = st.button(
-                "🔍 Get results", 
-                type="primary",
-                use_container_width=True
-            )
+                # Search button
+                search_button = st.button(
+                    "🔍 Get results", 
+                    type="primary",
+                    use_container_width=True
+                )
 
-        with col2:
-            st.markdown("### Search Results")
+            with col2:
+                st.markdown("### Search Results")
 
-            # Query and display results when button is clicked
-            if search_button:
-                
-                # Build the SQL query based on user inputs
-                if name_pattern:  # If user entered a name pattern
-                    query = f"""
-                        SELECT name, votes, city
-                        FROM restaurant
-                        WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
-                            AND name LIKE '%{name_pattern}%'
-                        ORDER BY votes DESC
-                    """
-                else:  # If no name pattern, just filter by votes
-                    query = f"""
-                        SELECT name, votes, city
-                        FROM restaurant
-                        WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
-                        ORDER BY votes DESC
-                    """
-                
-                # Execute the query
-                try:
-                    df = pd.read_sql(query, connection)
+                # Query and display results when button is clicked
+                if search_button:
                     
-                    # Check if we found any results
-                    if not df.empty:
-                        st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
+                    # Build the SQL query based on user inputs
+                    if name_pattern:  # If user entered a name pattern
+                        query = f"""
+                            SELECT name, votes, city
+                            FROM restaurant
+                            WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
+                                AND name LIKE '%{name_pattern}%'
+                            ORDER BY votes DESC
+                        """
+                    else:  # If no name pattern, just filter by votes
+                        query = f"""
+                            SELECT name, votes, city
+                            FROM restaurant
+                            WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
+                            ORDER BY votes DESC
+                        """
+                    
+                    # Execute the query
+                    try:
+                        df = pd.read_sql(query, connection)
                         
-                        # Display results in a nice formatted table
-                        st.dataframe(
-                            df,
-                            use_container_width=True,
-                            height=400,
-                            hide_index=True,
-                            column_config={
-                                "name": st.column_config.TextColumn("Restaurant Name", width="large"),
-                                "votes": st.column_config.NumberColumn("Votes", format="%d"),
-                                "city": st.column_config.TextColumn("City", width="medium"),
-                            }
-                        )
-                    else:
-                        st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
-                        
-                except Error as e:
-                    st.error(f"❌ Database error: {e}")
-
-                # TODO: Build and execute SQL query
-                #
-                # REQUIREMENTS:
-                # 1. Select these columns: name, votes, city
-                # 2. Filter by vote range (user selected range from slider)
-                # 3. Filter by name pattern if user entered one
-                # 4. Sort results by votes (highest first)
-                #
-                # SQL CONCEPTS YOU'LL NEED:
-                # - SELECT: Choose which columns to retrieve
-                # - WHERE: Filter your results
-                # - BETWEEN: Check if value is in a range (e.g., BETWEEN 100 AND 500)
-                # - LIKE: Pattern matching (use % as wildcard)
-                # - AND: Combine multiple conditions
-                # - ORDER BY: Sort your results (use DESC for descending)
-                #
-                # HINT: You need different queries depending on whether name_pattern is empty
-                # Think about: if name_pattern:
-                #                 # Query with both filters
-                #             else:
-                #                 # Query with only vote filter
-                #
-                # PATTERN MATCHING HINT:
-                # - '%pizza%' matches anything containing "pizza"
-                # - 'pizza%' matches anything starting with "pizza"
-                # - '%pizza' matches anything ending with "pizza"
-
-                # TODO: Execute your query using pandas
-                # Remember: df = pd.read_sql(your_query_string, connection)
-
-                # TODO: Check if results exist and display them
-                # COMMON MISTAKE: Forgetting to check if dataframe is empty
-                #
-                # if not df.empty:
-                #     st.success(f"Found {len(df)} restaurants")
-                #
-                #     # Display with nice formatting
-                #     st.dataframe(
-                #         df,
-                #         use_container_width=True,
-                #         height=400,
-                #         hide_index=True,
-                #         column_config={
-                #             "name": st.column_config.TextColumn("Restaurant Name"),
-                #             "votes": st.column_config.NumberColumn("Votes", format="%d"),
-                #             "city": st.column_config.TextColumn("City"),
-                #         }
-                #     )
-                # else:
-                #     st.warning("No restaurants found matching your criteria.")
-
-                st.info("TODO: Query results will appear here")
-
-            # TEST YOUR CODE:
-            # 1. First test with empty name pattern (should show all restaurants)
-            # 2. Test with "Dishoom" in name field (should show 2 results)
-            # 3. Test with vote range 0-500 (should filter by votes)
-            # 4. Test with both filters combined
-
+                        # Check if we found any results
+                        if not df.empty:
+                            st.s
 # ============================================
 # TAB 3: Q2-MAPS
 # ============================================
