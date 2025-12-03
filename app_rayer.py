@@ -227,7 +227,51 @@ elif page == "Q1-DB Query":
             st.markdown("### Search Results")
 
             # ===== STUDENT TODO: STEP 3 - Query and Display Results =====
+
             if search_button:  # This runs when button is clicked
+    
+    # Build the SQL query based on user inputs
+    if name_pattern:  # If user entered a name pattern
+        query = f"""
+            SELECT name, votes, city
+            FROM restaurant
+            WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
+                AND name LIKE '%{name_pattern}%'
+            ORDER BY votes DESC
+        """
+    else:  # If no name pattern, just filter by votes
+        query = f"""
+            SELECT name, votes, city
+            FROM restaurant
+            WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
+            ORDER BY votes DESC
+        """
+    
+    # Execute the query
+    try:
+        df = pd.read_sql(query, connection)
+        
+        # Check if we found any results
+        if not df.empty:
+            st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
+            
+            # Display results in a nice formatted table
+            st.dataframe(
+                df,
+                use_container_width=True,
+                height=400,
+                hide_index=True,
+                column_config={
+                    "name": st.column_config.TextColumn("Restaurant Name", width="large"),
+                    "votes": st.column_config.NumberColumn("Votes", format="%d"),
+                    "city": st.column_config.TextColumn("City", width="medium"),
+                }
+            )
+        else:
+            st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
+            
+    except Error as e:
+        st.error(f"❌ Database error: {e}")
 
                 # TODO: Build and execute SQL query
                 #
