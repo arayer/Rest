@@ -290,7 +290,7 @@ elif page == "Q2-Maps":
                 london_map = folium.Map(
                     location=[51.5074, -0.1278],
                     zoom_start=11,
-                    tiles='CartoDB Positron'
+                    tiles='CartoDB Dark_Matter'
                 )
                 
                 # Add a marker for each restaurant
