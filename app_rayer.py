@@ -124,40 +124,17 @@ elif page == "Q1-DB Query":
     if not db_connected:
         st.error("Database connection not available. Please check your connection settings.")
     else:
-        # ===== STUDENT TODO: STEP 1 - Get Min/Max Votes =====
-        # TODO: Query the database to get minimum and maximum votes
-        #
-        # SQL CONCEPTS YOU'LL NEED:
-        # - MIN() function: Gets the smallest value in a column
-        # - MAX() function: Gets the largest value in a column
-        # - AS: Give your results a name (alias) you can reference
-        # - WHERE: Filter out NULL values
-        #
-        # THINK ABOUT:
-        # - What table has the votes column?
-        # - How do you get both MIN and MAX in one query?
-        # - Why should you filter out NULL values?
-        #
-        # PANDAS HINT:
-        # - Use pd.read_sql() to execute your query
-        # - The result will be a DataFrame
-        # - Access values with: df['column_name'][0]
-        #
-        # For now, using placeholder values (REPLACE THESE):
         # Query to get the minimum and maximum votes from the database
-            vote_query = """
-                SELECT 
-                    MIN(votes) as min_votes, 
-                    MAX(votes) as max_votes 
-                FROM restaurant 
-                WHERE votes IS NOT NULL
-            """
+        vote_query = """
+            SELECT 
+                MIN(votes) as min_votes, 
+                MAX(votes) as max_votes 
+            FROM restaurant 
+            WHERE votes IS NOT NULL
+        """
         vote_stats = pd.read_sql(vote_query, connection)
         min_votes = int(vote_stats['min_votes'][0])
         max_votes = int(vote_stats['max_votes'][0])
-
-        # TEST: Display the values to verify they're correct
-        st.write(f"DEBUG: Min votes = {min_votes}, Max votes = {max_votes}")  # Remove this after testing
 
         # Create layout with columns
         col1, col2 = st.columns([1, 2])
@@ -165,113 +142,78 @@ elif page == "Q1-DB Query":
         with col1:
             st.markdown("### Filter Options")
 
-            # ===== STUDENT TODO: STEP 2 - Create Input Widgets =====
+            # Text input for restaurant name pattern
+            name_pattern = st.text_input(
+                "Pattern of Name:",
+                value="",
+                help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
+                placeholder="e.g., Pizza"
+            )
 
-            # TODO: Create a text input for restaurant name pattern
-            # DOCUMENTATION: https://docs.streamlit.io/library/api-reference/widgets/st.text_input
-            #
-            # Requirements:
-            # - Label: "Pattern of Name:"
-            # - Default value: "" (empty string)
-            # - Add a help parameter explaining what it does
-            # - Add a placeholder showing an example
-            #
-            # EXAMPLE:
-            # name_pattern = st.text_input(
-            #     "Your Label",
-            #     value="",
-            #     help="Help text here",
-            #     placeholder="e.g., Pizza"
-            # )
+            # Slider for vote range
+            vote_range = st.slider(
+                "Range of votes to search for:",
+                min_value=min_votes,
+                max_value=max_votes,
+                value=(min_votes, max_votes),
+                help="Drag the handles to filter restaurants by vote count"
+            )
 
-            name_pattern = "name_pattern = st.text_input(
-    "Pattern of Name:",
-    value="",
-    help="Enter part of a restaurant name to search for (e.g., 'Pizza', 'Dishoom')",
-    placeholder="e.g., Pizza"
-)"  # TODO: Replace with actual text_input widget
-
-            # TODO: Create a slider for vote range
-            # DOCUMENTATION: https://docs.streamlit.io/library/api-reference/widgets/st.slider
-            #
-            # Requirements:
-            # - Label: "Range of votes to search for:"
-            # - Use min_votes and max_votes from Step 1
-            # - Default should show full range
-            # - Returns a tuple (min_selected, max_selected)
-            #
-            # EXAMPLE:
-            # vote_range = st.slider(
-            #     "Your Label",
-            #     min_value=min_votes,
-            #     max_value=max_votes,
-            #     value=(min_votes, max_votes)
-            # )
-
-            vote_range = (min_votes, max_votes)  # TODO: Replace with actual slider widget
-
-            # TODO: Create a search button
-            # DOCUMENTATION: https://docs.streamlit.io/library/api-reference/widgets/st.button
-            #
-            # Requirements:
-            # - Text: "🔍 Get results"
-            # - Use type="primary" for styling
-            # - Use use_container_width=True for full width
-            #
-            # EXAMPLE:
-            # search_button = st.button("Button text", type="primary")
-
-            search_button = False  # TODO: Replace with actual button
+            # Search button
+            search_button = st.button(
+                "🔍 Get results", 
+                type="primary",
+                use_container_width=True
+            )
 
         with col2:
             st.markdown("### Search Results")
 
-            # ===== STUDENT TODO: STEP 3 - Query and Display Results =====
-
-            if search_button:  # This runs when button is clicked
-    
-    # Build the SQL query based on user inputs
-    if name_pattern:  # If user entered a name pattern
-        query = f"""
-            SELECT name, votes, city
-            FROM restaurant
-            WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
-                AND name LIKE '%{name_pattern}%'
-            ORDER BY votes DESC
-        """
-    else:  # If no name pattern, just filter by votes
-        query = f"""
-            SELECT name, votes, city
-            FROM restaurant
-            WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
-            ORDER BY votes DESC
-        """
-    
-    # Execute the query
-    try:
-        df = pd.read_sql(query, connection)
-        
-        # Check if we found any results
-        if not df.empty:
-            st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
-            
-            # Display results in a nice formatted table
-            st.dataframe(
-                df,
-                use_container_width=True,
-                height=400,
-                hide_index=True,
-                column_config={
-                    "name": st.column_config.TextColumn("Restaurant Name", width="large"),
-                    "votes": st.column_config.NumberColumn("Votes", format="%d"),
-                    "city": st.column_config.TextColumn("City", width="medium"),
-                }
-            )
-        else:
-            st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
-            
-    except Error as e:
-        st.error(f"❌ Database error: {e}")
+            # Query and display results when button is clicked
+            if search_button:
+                
+                # Build the SQL query based on user inputs
+                if name_pattern:  # If user entered a name pattern
+                    query = f"""
+                        SELECT name, votes, city
+                        FROM restaurant
+                        WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
+                            AND name LIKE '%{name_pattern}%'
+                        ORDER BY votes DESC
+                    """
+                else:  # If no name pattern, just filter by votes
+                    query = f"""
+                        SELECT name, votes, city
+                        FROM restaurant
+                        WHERE votes BETWEEN {vote_range[0]} AND {vote_range[1]}
+                        ORDER BY votes DESC
+                    """
+                
+                # Execute the query
+                try:
+                    df = pd.read_sql(query, connection)
+                    
+                    # Check if we found any results
+                    if not df.empty:
+                        st.success(f"✅ Found {len(df)} restaurant(s) matching your criteria")
+                        
+                        # Display results in a nice formatted table
+                        st.dataframe(
+                            df,
+                            use_container_width=True,
+                            height=400,
+                            hide_index=True,
+                            column_config={
+                                "name": st.column_config.TextColumn("Restaurant Name", width="large"),
+                                "votes": st.column_config.NumberColumn("Votes", format="%d"),
+                                "city": st.column_config.TextColumn("City", width="medium"),
+                            }
+                        )
+                    else:
+                        st.warning("⚠️ No restaurants found matching your criteria. Try adjusting your filters.")
+                        
+                except Error as e:
+                    st.error(f"❌ Database error: {e}")
 
                 # TODO: Build and execute SQL query
                 #
