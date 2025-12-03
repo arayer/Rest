@@ -237,6 +237,8 @@ elif page == "Q2-Maps":
 
         if display_map:
             
+           if display_map:
+            
             with st.spinner("Loading restaurant locations..."):
                 
                 # Query: Get all restaurants with valid coordinates
@@ -250,7 +252,40 @@ elif page == "Q2-Maps":
                 try:
                     # Execute query
                     locations_df = pd.read_sql(location_query, connection)
-
+                    
+                    # Check if we got results
+                    if locations_df.empty:
+                        st.warning("No restaurant locations found in the database.")
+                    else:
+                        # Create the map centered on London
+                        london_map = folium.Map(
+                            location=[51.5074, -0.1278],
+                            zoom_start=11,
+                            tiles='CartoDB Positron'
+                        )
+                        
+                        # Add a marker for each restaurant
+                        for idx, row in locations_df.iterrows():
+                            folium.Marker(
+                                location=[row['latitude'], row['longitude']],
+                                popup=folium.Popup(row['name'], max_width=200),
+                                tooltip=row['name'],
+                                icon=folium.Icon(color='blue', icon='cutlery', prefix='fa')
+                            ).add_to(london_map)
+                        
+                        # Display the map
+                        st_folium(
+                            london_map,
+                            width=None,
+                            height=600,
+                            use_container_width=True
+                        )
+                        
+                        # Show success message with count
+                        st.success(f"✅ Successfully mapped {len(locations_df)} restaurants")
+                        
+                except Error as e:
+                    st.error(f"❌ Database error: {e}")
 # ============================================
 # FOOTER (OPTIONAL - You can modify this)
 # ============================================
