@@ -83,18 +83,14 @@ if page == "HW Summary":
         st.write("""
         I made several customizations to enhance the user experience:
         
-        1. Layout: Used Streamlit's column system to create a two-column layout in the query tab, 
+        1. Layout: I used Streamlit's column system to create a two-column layout in the query tab, 
            placing filters on the left and results on the right for better visual organization.
         
-        2. Map Tiles: Changed from the default OpenStreetMap to CartoDB Positron tiles, which 
-           provides a cleaner, lighter aesthetic that makes restaurant markers more visible.
-        
-        3. Data Display: Configured the results table with custom column headers, number formatting 
-           for votes, and increased height for better readability. Added success/warning messages with 
-           result counts.
-        
-        4. Other: Added blue cutlery icons for map markers, hover tooltips showing restaurant names, 
-           and captions explaining map functionality to users.
+        2. Data Display: I configured the results table with custom column headers, number formatting 
+           for votes, and increased height for better readability. 
+           
+        3. Map Tiles: I changed from the default OpenStreetMap to CartoDB Positron tiles a lighter theme, which 
+           provides a cleaner look to make the restaurant markers more visible.
         """)
 
     # Technologies section
