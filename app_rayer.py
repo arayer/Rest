@@ -37,16 +37,7 @@ try:
     )
     db_connected = True
     st.success("✅ Database connected successfully!")
-    # DEBUG: Test what tables and columns exist
-    try:
-        tables_df = pd.read_sql("SHOW TABLES", connection)
-        st.write("Available tables:", tables_df)
-        
-        columns_df = pd.read_sql("SHOW COLUMNS FROM restaurant", connection)
-        st.write("Columns in restaurant table:", columns_df)
-    except Exception as e:
-        st.error(f"Debug error: {e}")
-
+    
 except Error as e:
     st.error(f"❌ Error connecting to MySQL Database: {e}")
     st.info("Please check your database credentials in the code (Block 3)")
